@@ -36,7 +36,6 @@
       border-radius: 20px;
       max-width: 80%;
       word-wrap: break-word;
-      transition: background 0.3s;
     }
 
     .user {
@@ -88,7 +87,11 @@
   <div class="chat-container">
     <div id="chatBox"></div>
     <div class="input-container">
-      <input type="text" id="userMessage" placeholder="Écris ton message ici..." />
+      <input
+        type="text"
+        id="userMessage"
+        placeholder="Écris ton message ici..."
+      />
       <button onclick="sendMessage()">Envoyer</button>
     </div>
   </div>
@@ -100,43 +103,47 @@
       if (!message) return;
 
       const chatBox = document.getElementById("chatBox");
+
+      // Message utilisateur
       chatBox.innerHTML += `<div class="message user">${message}</div>`;
       input.value = "";
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      // 🔹 Ajouter loader
-      const loaderDiv = document.createElement("div");
-      loaderDiv.className = "loader";
-      loaderDiv.textContent = "MentalCareBot écrit...";
-      chatBox.appendChild(loaderDiv);
+      // Loader
+      const loader = document.createElement("div");
+      loader.className = "loader";
+      loader.textContent = "MentalCareBot écrit...";
+      chatBox.appendChild(loader);
       chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        const response = await fetch("/chat", {
+        const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message })
         });
 
         const data = await response.json();
+        loader.remove();
 
-        // Supprimer loader
-        loaderDiv.remove();
-
-        // Ajouter la réponse du bot
         chatBox.innerHTML += `<div class="message bot">${data.answer}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
-      } catch (err) {
-        loaderDiv.remove();
-        chatBox.innerHTML += `<div class="message bot">⚠️ Erreur, le serveur ne répond pas.</div>`;
+      } catch (error) {
+        loader.remove();
+        chatBox.innerHTML += `
+          <div class="message bot">
+            ⚠️ Erreur, le serveur ne répond pas.
+          </div>`;
       }
     }
 
-    // Envoyer le message avec la touche "Entrée"
-    document.getElementById("userMessage").addEventListener("keypress", function(e) {
-      if (e.key === "Enter") sendMessage();
-    });
+    // Envoyer avec Entrée
+    document
+      .getElementById("userMessage")
+      .addEventListener("keypress", function (e) {
+        if (e.key === "Enter") sendMessage();
+      });
   </script>
 </body>
 </html>
